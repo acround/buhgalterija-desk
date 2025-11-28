@@ -36,7 +36,7 @@ export function TopBar() {
   };
 
   return (
-    <header className="fixed top-0 right-0 left-64 z-30 h-16 bg-muted border-b border-border flex items-center justify-between px-6">
+    <header className="fixed top-0 right-0 left-64 z-30 h-16 bg-card border-b border-border flex items-center justify-between px-6">
       {/* Search */}
       <div className="flex-1 max-w-xl">
         <div className="relative">
