@@ -7,7 +7,6 @@ import {
   Building2,
   ListTodo,
   FileText,
-  BarChart3,
   Settings,
   Users,
   ChevronLeft,
@@ -18,7 +17,7 @@ import { Button } from '@/components/ui/button';
 
 interface NavItem {
   icon: React.ElementType;
-  labelKey: 'dashboard' | 'companies' | 'tasks' | 'documents' | 'reports' | 'settings' | 'users';
+  labelKey: 'dashboard' | 'companies' | 'tasks' | 'documents' | 'settings' | 'users';
   path: string;
   roles?: ('director' | 'administrator' | 'accountant')[];
 }
@@ -28,7 +27,6 @@ const navItems: NavItem[] = [
   { icon: Building2, labelKey: 'companies', path: '/companies' },
   { icon: ListTodo, labelKey: 'tasks', path: '/tasks' },
   { icon: FileText, labelKey: 'documents', path: '/documents' },
-  { icon: BarChart3, labelKey: 'reports', path: '/reports' },
   { icon: Users, labelKey: 'users', path: '/users', roles: ['administrator'] },
   { icon: Settings, labelKey: 'settings', path: '/settings', roles: ['administrator', 'director'] },
 ];
