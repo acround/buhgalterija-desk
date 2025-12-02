@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 export type UserRole = 'director' | 'administrator' | 'accountant';
 
@@ -12,7 +14,9 @@ export interface User {
 
 interface AuthContextType {
   user: User | null;
-  setUser: (user: User | null) => void;
+  session: Session | null;
+  isLoading: boolean;
+  signOut: () => Promise<void>;
   isDirector: boolean;
   isAdmin: boolean;
   isAccountant: boolean;
@@ -28,16 +32,66 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Mock user for demonstration - in production this would come from auth
-const mockUser: User = {
-  id: '1',
-  name: 'Анна Петрова',
-  email: 'anna@buhgalterija.rs',
-  role: 'director', // Change to 'administrator' or 'accountant' to test different views
-};
-
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(mockUser);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        
+        if (session?.user) {
+          // Defer profile fetch to avoid deadlock
+          setTimeout(() => {
+            fetchUserProfile(session.user);
+          }, 0);
+        } else {
+          setUser(null);
+          setIsLoading(false);
+        }
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        fetchUserProfile(session.user);
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', supabaseUser.id)
+      .maybeSingle();
+
+    // Default role is accountant until roles system is implemented
+    const appUser: User = {
+      id: supabaseUser.id,
+      name: profile?.full_name || supabaseUser.email?.split('@')[0] || 'User',
+      email: supabaseUser.email || '',
+      role: 'director', // Default role - will be managed by roles table later
+    };
+
+    setUser(appUser);
+    setIsLoading(false);
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+  };
 
   const isDirector = user?.role === 'director';
   const isAdmin = user?.role === 'administrator';
@@ -51,7 +105,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   return (
     <AuthContext.Provider value={{
       user,
-      setUser,
+      session,
+      isLoading,
+      signOut,
       isDirector,
       isAdmin,
       isAccountant,
