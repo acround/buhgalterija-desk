@@ -12,7 +12,6 @@ import Companies from "./pages/Companies";
 import CompanyProfile from "./pages/CompanyProfile";
 import Tasks from "./pages/Tasks";
 import Documents from "./pages/Documents";
-import Reports from "./pages/Reports";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -28,13 +27,12 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <AppLayout>
-              <Routes>
+            <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/companies" element={<Companies />} />
                 <Route path="/companies/:id" element={<CompanyProfile />} />
                 <Route path="/tasks" element={<Tasks />} />
                 <Route path="/documents" element={<Documents />} />
-                <Route path="/reports" element={<Reports />} />
                 <Route path="/users" element={<Users />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="*" element={<NotFound />} />
