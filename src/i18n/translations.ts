@@ -16,6 +16,10 @@ export const translations = {
     administrator: 'Администратор',
     accountant: 'Бухгалтер',
     
+    // Auth
+    login: 'Войти',
+    password: 'Пароль',
+    
     // Common
     search: 'Поиск',
     searchPlaceholder: 'Поиск по компании, ПИБ, задаче...',
@@ -182,6 +186,10 @@ export const translations = {
     director: 'Direktor',
     administrator: 'Administrator',
     accountant: 'Knjigovođa',
+    
+    // Auth
+    login: 'Prijava',
+    password: 'Lozinka',
     
     // Common
     search: 'Pretraga',

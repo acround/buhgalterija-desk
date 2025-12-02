@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import Companies from "./pages/Companies";
 import CompanyProfile from "./pages/CompanyProfile";
 import Tasks from "./pages/Tasks";
@@ -27,8 +28,9 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <AppLayout>
-            <Routes>
+              <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
                 <Route path="/companies" element={<Companies />} />
                 <Route path="/companies/:id" element={<CompanyProfile />} />
                 <Route path="/tasks" element={<Tasks />} />

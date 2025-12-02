@@ -13,10 +13,17 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
 
 export function TopBar() {
   const { language, setLanguage, t } = useLanguage();
-  const { user, isDirector, isAdmin, isAccountant } = useAuth();
+  const { user, signOut, isDirector, isAdmin, isAccountant } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/auth');
+  };
 
   const getRoleBadge = () => {
     if (isDirector) return { label: t('director'), variant: 'default' as const };
@@ -107,7 +114,7 @@ export function TopBar() {
               {t('profile')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem className="text-destructive" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               {t('logout')}
             </DropdownMenuItem>
