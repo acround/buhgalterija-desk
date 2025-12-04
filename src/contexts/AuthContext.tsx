@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User as SupabaseUser, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import React, { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
+import { LoginResponse } from '@/api/auth';
+import { clearAccessToken, getAccessToken, setAccessToken } from '@/api/client';
 
-export type UserRole = 'director' | 'administrator' | 'accountant';
+export type UserRole = 'director' | 'administrator' | 'accountant' | string;
 
 export interface User {
   id: string;
@@ -12,9 +12,14 @@ export interface User {
   avatar?: string;
 }
 
+interface AuthSession {
+  token: string;
+}
+
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
+  token: string | null;
+  session: AuthSession | null;
   isLoading: boolean;
   signOut: () => Promise<void>;
   isDirector: boolean;
@@ -24,79 +29,69 @@ interface AuthContextType {
   canManageCompanies: boolean;
   canAssignTasks: boolean;
   canApproveTasks: boolean;
+  setAuthFromLogin: (payload: LoginResponse) => void;
 }
 
+const USER_STORAGE_KEY = 'authUser';
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
   children: ReactNode;
 }
 
+function mapLoginToUser(payload: LoginResponse): User {
+  const { user } = payload;
+  return {
+    id: String(user.id),
+    name: user.username || user.email || 'User',
+    email: user.email || user.username || '',
+    role: (user.role as UserRole) || 'accountant',
+    avatar: user.avatar,
+  };
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const storedUser = localStorage.getItem(USER_STORAGE_KEY);
+    if (!storedUser) return null;
+    try {
+      return JSON.parse(storedUser) as User;
+    } catch (error) {
+      console.error('Failed to parse stored user', error);
+      return null;
+    }
+  });
+  const [token, setToken] = useState<string | null>(() => getAccessToken());
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        
-        if (session?.user) {
-          // Defer profile fetch to avoid deadlock
-          setTimeout(() => {
-            fetchUserProfile(session.user);
-          }, 0);
-        } else {
-          setUser(null);
-          setIsLoading(false);
-        }
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        fetchUserProfile(session.user);
-      } else {
-        setIsLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    setIsLoading(false);
   }, []);
 
-  const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', supabaseUser.id)
-      .maybeSingle();
-
-    // Default role is accountant until roles system is implemented
-    const appUser: User = {
-      id: supabaseUser.id,
-      name: profile?.full_name || supabaseUser.email?.split('@')[0] || 'User',
-      email: supabaseUser.email || '',
-      role: 'director', // Default role - will be managed by roles table later
-    };
-
-    setUser(appUser);
-    setIsLoading(false);
+  const setAuthFromLogin = (payload: LoginResponse) => {
+    const nextUser = mapLoginToUser(payload);
+    setUser(nextUser);
+    setToken(payload.token);
+    setAccessToken(payload.token);
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(nextUser));
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    clearAccessToken();
+    localStorage.removeItem(USER_STORAGE_KEY);
     setUser(null);
-    setSession(null);
+    setToken(null);
   };
+
+  const session = useMemo<AuthSession | null>(() => {
+    if (!token) return null;
+    return { token };
+  }, [token]);
 
   const isDirector = user?.role === 'director';
   const isAdmin = user?.role === 'administrator';
   const isAccountant = user?.role === 'accountant';
-  
+
   const canManageUsers = isAdmin;
   const canManageCompanies = isAdmin || isDirector;
   const canAssignTasks = isAdmin || isDirector;
@@ -105,16 +100,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
   return (
     <AuthContext.Provider value={{
       user,
+      token,
       session,
       isLoading,
       signOut,
-      isDirector,
-      isAdmin,
-      isAccountant,
+      isDirector: Boolean(isDirector),
+      isAdmin: Boolean(isAdmin),
+      isAccountant: Boolean(isAccountant),
       canManageUsers,
       canManageCompanies,
       canAssignTasks,
       canApproveTasks,
+      setAuthFromLogin,
     }}>
       {children}
     </AuthContext.Provider>

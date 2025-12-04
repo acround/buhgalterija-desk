@@ -48,3 +48,11 @@ const App = () => (
 );
 
 export default App;
+
+// example inside a component or hook
+import { useMutation } from '@tanstack/react-query';
+import { login } from '@/api/auth';
+
+export function useLogin() {
+  return useMutation({ mutationFn: login });
+}
