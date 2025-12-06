@@ -157,7 +157,7 @@ If you are not familiar with React or TypeScript, start by adding a tiny API hel
    export type LoginResponse = { token: string; user: { id: number; username: string } };
 
    export function login(payload: LoginRequest) {
-     return apiFetch<LoginResponse>('/auth/login', {
+     return apiFetch<LoginResponse>('/login', {
        method: 'POST',
        body: JSON.stringify(payload),
      });
