@@ -74,6 +74,12 @@ To connect a domain, navigate to Project > Settings > Domains and click Connect 
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
 
+## Notes for local builds and Yii2 API wiring
+
+- Running `npm run build` may show a Browserslist warning about an out-of-date `caniuse-lite` dataset. This is informational; the build still succeeds. If you want to silence it locally, run `npx update-browserslist-db@latest`.
+- The front-end assumes your Yii2 auth endpoints exist at `/auth/login` and `/auth/register` (or the same paths under the host defined in `VITE_API_BASE_URL`). Until those backend routes are implemented, POST requests to them will return `404` even though the front-end code and token handling are already wired.
+- You can change the base API host by setting `VITE_API_BASE_URL` in `.env.development` / `.env.production`; the shared `apiFetch` helper in `src/api/client.ts` prepends this value to all requests.
+
 ## Where the Yii2 auth integration lives
 
 If you are looking for the Yii2-oriented changes that add bearer-token handling and the login/register flow, the key files are:
@@ -157,7 +163,7 @@ If you are not familiar with React or TypeScript, start by adding a tiny API hel
    export type LoginResponse = { token: string; user: { id: number; username: string } };
 
    export function login(payload: LoginRequest) {
-     return apiFetch<LoginResponse>('/login', {
+     return apiFetch<LoginResponse>('/auth/login', {
        method: 'POST',
        body: JSON.stringify(payload),
      });
@@ -182,7 +188,7 @@ If you are not familiar with React or TypeScript, start by adding a tiny API hel
 
    ```tsx
    import { FormEvent, useState } from 'react';
-   import { useLogin } from '@/hooks/useLogin';
+   import { useLogin } from '@/api/hooks/useLogin';
 
    export function LoginForm() {
      const [username, setUsername] = useState('');
