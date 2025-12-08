@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,8 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
-import { LoginForm } from '@/features/auth/LoginForm';
-import { useRegister } from '@/hooks/useRegister';
 
 const emailSchema = z.string().trim().email({ message: 'Неверный формат email' });
 const passwordSchema = z.string().min(6, { message: 'Пароль должен быть не менее 6 символов' });
@@ -20,52 +18,106 @@ export default function Auth() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  const { setAuthFromLogin } = useAuth();
-
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  
+  // Login form
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  
+  // Signup form
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupName, setSignupName] = useState('');
-  const [showSignupPassword, setShowSignupPassword] = useState(false);
 
-  const registerMutation = useRegister({
-    onSuccess: (data) => {
-      setAuthFromLogin(data);
-      toast({ title: 'Успешно', description: 'Регистрация завершена. Вы вошли в систему.' });
-      navigate('/');
-    },
-    onError: (error) => {
-      toast({ variant: 'destructive', title: 'Ошибка', description: error.message || 'Ошибка регистрации' });
-    },
-  });
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const emailResult = emailSchema.safeParse(loginEmail);
+    if (!emailResult.success) {
+      toast({ variant: 'destructive', title: 'Ошибка', description: emailResult.error.errors[0].message });
+      return;
+    }
+    
+    const passwordResult = passwordSchema.safeParse(loginPassword);
+    if (!passwordResult.success) {
+      toast({ variant: 'destructive', title: 'Ошибка', description: passwordResult.error.errors[0].message });
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    const { error } = await supabase.auth.signInWithPassword({
+      email: loginEmail,
+      password: loginPassword,
+    });
+    
+    setIsLoading(false);
+    
+    if (error) {
+      let message = 'Ошибка входа';
+      if (error.message === 'Invalid login credentials') {
+        message = 'Неверный email или пароль';
+      } else if (error.message.includes('Email not confirmed')) {
+        message = 'Email не подтверждён';
+      }
+      toast({ variant: 'destructive', title: 'Ошибка', description: message });
+      return;
+    }
+    
+    toast({ title: 'Успешно', description: 'Вы вошли в систему' });
+    navigate('/');
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     const emailResult = emailSchema.safeParse(signupEmail);
     if (!emailResult.success) {
       toast({ variant: 'destructive', title: 'Ошибка', description: emailResult.error.errors[0].message });
       return;
     }
-
+    
     const passwordResult = passwordSchema.safeParse(signupPassword);
     if (!passwordResult.success) {
       toast({ variant: 'destructive', title: 'Ошибка', description: passwordResult.error.errors[0].message });
       return;
     }
-
+    
     if (!signupName.trim()) {
       toast({ variant: 'destructive', title: 'Ошибка', description: 'Введите имя' });
       return;
     }
-
-    registerMutation.mutate({
-      username: signupEmail,
+    
+    setIsLoading(true);
+    
+    const redirectUrl = `${window.location.origin}/`;
+    
+    const { error } = await supabase.auth.signUp({
       email: signupEmail,
       password: signupPassword,
-      name: signupName,
+      options: {
+        emailRedirectTo: redirectUrl,
+        data: {
+          full_name: signupName,
+        },
+      },
     });
-
+    
+    setIsLoading(false);
+    
+    if (error) {
+      let message = 'Ошибка регистрации';
+      if (error.message.includes('already registered')) {
+        message = 'Пользователь с таким email уже существует';
+      }
+      toast({ variant: 'destructive', title: 'Ошибка', description: message });
+      return;
+    }
+    
+    toast({ title: 'Успешно', description: 'Регистрация завершена. Вы вошли в систему.' });
+    navigate('/');
   };
 
   return (
@@ -86,11 +138,49 @@ export default function Auth() {
               <TabsTrigger value="login">{t('login')}</TabsTrigger>
               <TabsTrigger value="signup">Регистрация</TabsTrigger>
             </TabsList>
-
+            
             <TabsContent value="login">
-              <LoginForm />
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="login-email">Email</Label>
+                  <Input
+                    id="login-email"
+                    type="email"
+                    placeholder="email@example.com"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    disabled={isLoading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="login-password">{t('password')}</Label>
+                  <div className="relative">
+                    <Input
+                      id="login-password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      disabled={isLoading}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </div>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {t('login')}
+                </Button>
+              </form>
             </TabsContent>
-
+            
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
@@ -120,7 +210,7 @@ export default function Auth() {
                   <div className="relative">
                     <Input
                       id="signup-password"
-                      type={showSignupPassword ? 'text' : 'password'}
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Минимум 6 символов"
                       value={signupPassword}
                       onChange={(e) => setSignupPassword(e.target.value)}
@@ -131,9 +221,9 @@ export default function Auth() {
                       variant="ghost"
                       size="icon"
                       className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                      onClick={() => setShowPassword(!showPassword)}
                     >
-                      {showSignupPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>
