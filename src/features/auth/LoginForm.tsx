@@ -62,7 +62,7 @@ export function LoginForm() {
                     placeholder="email@example.com"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    disabled={login.isLoading}
+                    disabled={login.isPending}
                 />
             </div>
             <div className="space-y-2">
@@ -74,7 +74,7 @@ export function LoginForm() {
                         placeholder="••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        disabled={login.isLoading}
+                        disabled={login.isPending}
                     />
                     <Button
                         type="button"
@@ -87,8 +87,8 @@ export function LoginForm() {
                     </Button>
                 </div>
             </div>
-            <Button type="submit" className="w-full" disabled={login.isLoading}>
-                {login.isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="submit" className="w-full" disabled={login.isPending}>
+                {login.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {t('login')}
             </Button>
         </form>

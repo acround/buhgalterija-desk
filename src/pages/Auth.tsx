@@ -97,7 +97,7 @@ export default function Auth() {
                     placeholder="Ваше имя"
                     value={signupName}
                     onChange={(e) => setSignupName(e.target.value)}
-                    disabled={registerMutation.isLoading}
+                    disabled={registerMutation.isPending}
                   />
                 </div>
                 <div className="space-y-2">
@@ -108,7 +108,7 @@ export default function Auth() {
                     placeholder="email@example.com"
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
-                    disabled={registerMutation.isLoading}
+                    disabled={registerMutation.isPending}
                   />
                 </div>
                 <div className="space-y-2">
@@ -120,7 +120,7 @@ export default function Auth() {
                       placeholder="Минимум 6 символов"
                       value={signupPassword}
                       onChange={(e) => setSignupPassword(e.target.value)}
-                      disabled={registerMutation.isLoading}
+                      disabled={registerMutation.isPending}
                     />
                     <Button
                       type="button"
@@ -133,8 +133,8 @@ export default function Auth() {
                     </Button>
                   </div>
                 </div>
-                <Button type="submit" className="w-full" disabled={registerMutation.isLoading}>
-                  {registerMutation.isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
+                  {registerMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Зарегистрироваться
                 </Button>
               </form>

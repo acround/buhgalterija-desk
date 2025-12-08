@@ -39,7 +39,9 @@ export function Sidebar() {
 
   const filteredNavItems = navItems.filter(item => {
     if (!item.roles) return true;
-    return user && item.roles.includes(user.role);
+    if (!user?.role) return false;
+    const role = user.role as 'director' | 'administrator' | 'accountant';
+    return item.roles.includes(role);
   });
 
   return (
