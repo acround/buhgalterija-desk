@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Task } from '@/data/mockData';
@@ -30,6 +31,7 @@ interface TasksTableProps {
 export function TasksTable({ tasks, onTaskClick }: TasksTableProps) {
   const { t } = useLanguage();
   const { canAssignTasks } = useAuth();
+  const navigate = useNavigate();
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
 
   const toggleTask = (taskId: string) => {
@@ -129,7 +131,13 @@ export function TasksTable({ tasks, onTaskClick }: TasksTableProps) {
                   isOverdue(task) && task.status !== 'done' && 'bg-destructive/5',
                   selectedTasks.includes(task.id) && 'bg-primary/5'
                 )}
-                onClick={() => onTaskClick?.(task)}
+                onClick={() => {
+                  if (onTaskClick) {
+                    onTaskClick(task);
+                  } else {
+                    navigate(`/tasks/${task.id}`);
+                  }
+                }}
               >
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <Checkbox
@@ -182,7 +190,7 @@ export function TasksTable({ tasks, onTaskClick }: TasksTableProps) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate(`/tasks/${task.id}`)}>
                           <ExternalLink className="h-4 w-4 mr-2" />
                           {t('view')}
                         </DropdownMenuItem>

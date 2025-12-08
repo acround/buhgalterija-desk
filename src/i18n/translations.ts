@@ -174,6 +174,20 @@ export const translations = {
     overdue: 'Просрочено',
     daysLeft: 'дней осталось',
     daysOverdue: 'дней просрочено',
+    
+    // Task View
+    taskNotFound: 'Задача не найдена',
+    backToTasks: 'Назад к задачам',
+    markComplete: 'Завершить',
+    noDescription: 'Описание отсутствует',
+    addDocument: 'Добавить документ',
+    noLinkedDocuments: 'Нет связанных документов',
+    noComments: 'Комментариев пока нет',
+    addComment: 'Добавить комментарий...',
+    companyInfo: 'Информация о компании',
+    activity: 'Активность',
+    taskCreated: 'Задача создана',
+    statusChangedToInProgress: 'Статус изменён на "В работе"',
   },
   sr: {
     // Navigation
@@ -346,6 +360,20 @@ export const translations = {
     overdue: 'Zakasnelo',
     daysLeft: 'dana preostalo',
     daysOverdue: 'dana zakašnjenja',
+    
+    // Task View
+    taskNotFound: 'Zadatak nije pronađen',
+    backToTasks: 'Nazad na zadatke',
+    markComplete: 'Završi',
+    noDescription: 'Nema opisa',
+    addDocument: 'Dodaj dokument',
+    noLinkedDocuments: 'Nema povezanih dokumenata',
+    noComments: 'Još nema komentara',
+    addComment: 'Dodaj komentar...',
+    companyInfo: 'Informacije o kompaniji',
+    activity: 'Aktivnost',
+    taskCreated: 'Zadatak kreiran',
+    statusChangedToInProgress: 'Status promenjen u "U toku"',
   },
 } as const;
 
