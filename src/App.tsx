@@ -13,6 +13,7 @@ import Companies from "./pages/Companies";
 import CompanyProfile from "./pages/CompanyProfile";
 import Tasks from "./pages/Tasks";
 import Documents from "./pages/Documents";
+import DocumentView from "./pages/DocumentView";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -35,6 +36,7 @@ const App = () => (
                 <Route path="/companies/:id" element={<CompanyProfile />} />
                 <Route path="/tasks" element={<Tasks />} />
                 <Route path="/documents" element={<Documents />} />
+                <Route path="/documents/:id" element={<DocumentView />} />
                 <Route path="/users" element={<Users />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="*" element={<NotFound />} />

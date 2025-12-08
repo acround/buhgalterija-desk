@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Document } from '@/data/mockData';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -23,6 +24,7 @@ interface DocumentsTableProps {
 }
 
 export function DocumentsTable({ documents }: DocumentsTableProps) {
+  const navigate = useNavigate();
   const { t } = useLanguage();
 
   const getDocTypeLabel = (type: Document['type']) => {
@@ -69,7 +71,11 @@ export function DocumentsTable({ documents }: DocumentsTableProps) {
         </TableHeader>
         <TableBody>
           {documents.map((doc) => (
-            <TableRow key={doc.id} className="hover:bg-secondary/30 transition-colors">
+            <TableRow 
+              key={doc.id} 
+              className="hover:bg-secondary/30 transition-colors cursor-pointer"
+              onClick={() => navigate(`/documents/${doc.id}`)}
+            >
               <TableCell>
                 <div className="flex items-center gap-2">
                   {getFileIcon(doc.fileName)}
@@ -97,11 +103,11 @@ export function DocumentsTable({ documents }: DocumentsTableProps) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/documents/${doc.id}`); }}>
                       <Eye className="h-4 w-4 mr-2" />
                       {t('view')}
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
                       <Download className="h-4 w-4 mr-2" />
                       {t('download')}
                     </DropdownMenuItem>
