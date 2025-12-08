@@ -1,5 +1,3 @@
-import { ref } from "process";
-
 export type Language = 'ru' | 'sr';
 
 export const translations = {
@@ -46,7 +44,6 @@ export const translations = {
     comments: 'Комментарии',
     noData: 'Нет данных',
     loading: 'Загрузка...',
-    refresh: 'Обновить',
     all: 'Все',
     
     // Dashboard
@@ -232,7 +229,6 @@ export const translations = {
     comments: 'Komentari',
     noData: 'Nema podataka',
     loading: 'Učitavanje...',
-    refresh: 'Osveži',
     all: 'Sve',
     
     // Dashboard

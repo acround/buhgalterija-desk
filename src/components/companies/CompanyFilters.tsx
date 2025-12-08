@@ -18,8 +18,6 @@ interface CompanyFiltersProps {
   onStatusChange: (value: string) => void;
   onAccountantChange: (value: string) => void;
   onSortChange: (value: string) => void;
-  onSendRequest: () => void;
-  isRequesting?: boolean;
 }
 
 export function CompanyFilters({
@@ -27,8 +25,6 @@ export function CompanyFilters({
   onStatusChange,
   onAccountantChange,
   onSortChange,
-  onSendRequest,
-  isRequesting,
 }: CompanyFiltersProps) {
   const { t } = useLanguage();
   const { canManageCompanies } = useAuth();
@@ -114,14 +110,6 @@ export function CompanyFilters({
           >
             <X className="h-4 w-4 mr-1" />
             {t('clearFilters')}
-          </Button>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={onSendRequest}
-            disabled={isRequesting}
-          >
-            {isRequesting ? t('loading') : 'Отправить в бэк'}
           </Button>
         </div>
       )}
